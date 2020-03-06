@@ -73,18 +73,8 @@ function doSetup() {
 // weak signals
 radio.onReceivedString(function (receivedString) {
     if (isSender == false) {
-        let sigStrength = radio.receivedPacket(RadioPacketProperty.SignalStrength)
-
-        // haven't yet figured out how to use variable for keys
-        // of objects in this version of JS. The object[key]
-        //  notation doesn't appear to work
-        if (receivedString == "food") {
-            currentSignal.food.signal = sigStrength
-            currentSignal.food.time = input.runningTime()
-        } else if (receivedString == "antibiotic") {
-            currentSignal.antibiotic.signal = sigStrength
-            currentSignal.antibiotic.time = input.runningTime()
-        }
+        currentSignal[receivedString].signal = radio.receivedPacket(RadioPacketProperty.SignalStrength)
+        currentSignal[receivedString].time = input.runningTime()
     }
 })
 
@@ -113,7 +103,7 @@ let directionHint: string = ""
 // this object will have one key for food and one for antibiotic
 // and each slots stores the signal strength and time of the last
 // received signal of this type
-let currentSignal = {
+let currentSignal: { [index: string]: any; } = {
     antibiotic: { signal: 0, time: 0 },
     food: { signal: 0, time: 0 },
     light: { signal: 0, time: 0 }
@@ -125,7 +115,6 @@ let plasmidsObtained: { [index: string]: any; } = {
     food: false, 
     light: false
 }
-let myDictionary: { [index: string]: any; } = { firstName: "Paul", lastName: "Smith" };
 
 if (isSender == true) {
     //    basic.showString(senderType)
