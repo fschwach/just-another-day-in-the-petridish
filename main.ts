@@ -115,13 +115,17 @@ let directionHint: string = ""
 // received signal of this type
 let currentSignal = {
     antibiotic: { signal: 0, time: 0 },
-    food: { signal: 0, time: 0 }
+    food: { signal: 0, time: 0 },
+    light: { signal: 0, time: 0 }
 }
 
 // keep track of the plasmids we have
-let antibioticPlasmidObtained = false
-let foodPlasmidObtained = false
-let lightPlasmidobtained = false
+let plasmidsObtained: { [index: string]: any; } = { 
+    antibiotic: false, 
+    food: false, 
+    light: false
+}
+let myDictionary: { [index: string]: any; } = { firstName: "Paul", lastName: "Smith" };
 
 if (isSender == true) {
     //    basic.showString(senderType)
@@ -146,12 +150,12 @@ input.onButtonPressed(Button.B, function () {
 // to players in the vicinity when a button is pressed 
 input.onButtonPressed(Button.A, function () {
     if (isSender == false) {
-        foodPlasmidObtained = true
+        plasmidsObtained["food"] =  true
     }
 })
 input.onButtonPressed(Button.B, function () {
     if (isSender == false) {
-        antibioticPlasmidObtained = true
+        plasmidsObtained["antibiotic"] =  true
     }
 })
 
@@ -252,7 +256,7 @@ function disaplyScoreToRow(myScore: number, maxScore: number, row: number) {
 // food signal
 // plasmids: food,antibio resistance,light
 // direction hint
-function display(normAntibioticSignal: number, normFoodSignal: number, score: number, directionHint: string, foodPlasmidObtained: boolean, antibioticPlasmidObtained: boolean) {
+function display(normAntibioticSignal: number, normFoodSignal: number, score: number, directionHint: string, plasmidsObtained: any ) {
     disaplyScoreToRow(score, 100, 0)
     disaplyScoreToRow(normFoodSignal, 100, 1)
     disaplyScoreToRow(normAntibioticSignal, 100, 2)
@@ -265,10 +269,10 @@ function display(normAntibioticSignal: number, normFoodSignal: number, score: nu
     }
 
     // plasmids
-    if (foodPlasmidObtained == true) {
+    if (plasmidsObtained["food"] == true) {
         led.plot(0, 3)
     }
-    if (antibioticPlasmidObtained == true) {
+    if (plasmidsObtained["antibiotic"] == true) {
         led.plot(1, 3)
     }
 
@@ -317,9 +321,9 @@ while (true) {
 
         // player looses points if exposed to antibiotic without resistance
         // plasmid and can not feed in that case
-        if (normSignalAntibiotic >= 50 && !antibioticPlasmidObtained) {
+        if (normSignalAntibiotic >= 50 && !plasmidsObtained["antibiotic"]) {
             score += -1
-        } else if (normSignalFood >= 50 && foodPlasmidObtained) {
+        } else if (normSignalFood >= 50 && plasmidsObtained["food"]) {
             score += 0.5
         }
 
@@ -329,7 +333,7 @@ while (true) {
             score = 0
         }
 
-        display(normSignalAntibiotic, normSignalFood, score, directionHint, foodPlasmidObtained, antibioticPlasmidObtained)
+        display(normSignalAntibiotic, normSignalFood, score, directionHint, plasmidsObtained)
         // pause a bit: may not be necessary but might make display more stable
         basic.pause(50)
     }
