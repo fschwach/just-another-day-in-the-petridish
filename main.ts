@@ -100,6 +100,12 @@ let senderActivityIconsFood = [
 let currDirection: number
 let directionHint: string = ""
 
+// these keep track of the last time a shake
+// was trigger to reset direction and define
+// a mininimum time that needs to pas between shakes
+let lastShakeTime: number = input.runningTime() 
+let minTimePassShake: number = 5000
+
 // this object will have one key for food and one for antibiotic
 // and each slots stores the signal strength and time of the last
 // received signal of this type
@@ -115,6 +121,27 @@ let plasmidsObtained: { [index: string]: any; } = {
     food: false, 
     light: false
 }
+
+/*
+COMING SOON....
+// setup the external display LEDs
+// for now, assue we use 5 ZIP (Neopixel) LED strips
+// but we might replace some of them with individual LEDs to
+// allow more space between the LEDS (such as for the indicators of 
+// obtained plasmids
+let stripScore: neopixel.Strip = null
+let stripFood: neopixel.Strip = null
+let stripAntibiotic: neopixel.Strip = null
+let stripPlasmids: neopixel.Strip = null
+let stripDirection: neopixel.Strip = null
+
+stripScore = neopixel.create(DigitalPin.P0, 12, NeoPixelMode.RGB)
+stripFood = neopixel.create(DigitalPin.P1, 5, NeoPixelMode.RGB)
+stripAntibiotic = neopixel.create(DigitalPin.P8, 5, NeoPixelMode.RGB)
+stripPlasmids = neopixel.create(DigitalPin.P12, 5, NeoPixelMode.RGB)
+stripDirection = neopixel.create(DigitalPin.P2, 5, NeoPixelMode.RGB)
+*/
+
 
 if (isSender == true) {
     //    basic.showString(senderType)
@@ -152,6 +179,7 @@ input.onButtonPressed(Button.B, function () {
 
 // event handler for shake gesture on the player:
 // set a new random direction
+// A minimum time needs to pass between shakes
 // TODO the visual hint that the gesture has been
 // deployed, is not working because this is happening in 
 // a thread and other threads will be overwriting the display
@@ -161,13 +189,22 @@ input.onButtonPressed(Button.B, function () {
 // display function, which would then display the visual
 // hint instead of the game status
 input.onGesture(Gesture.Shake, function () {
-    if (isSender == false) {
-        basic.clearScreen()
-        images.iconImage(IconNames.Target).showImage(0)
-        // music.beginMelody(music.builtInMelody(Melodies.BaDing), MelodyOptions.Once)
-        basic.pause(1000)
-        currDirection = Math.randomRange(0, 359)
-        basic.clearScreen()
+    if (isSender == false ) {
+        if ( input.runningTime() - lastShakeTime >= minTimePassShake ) {
+            basic.clearScreen()
+            images.iconImage(IconNames.Target).showImage(0)
+            // music.beginMelody(music.builtInMelody(Melodies.BaDing), MelodyOptions.Once)
+            basic.pause(1000)
+            currDirection = Math.randomRange(0, 359)
+            lastShakeTime = input.runningTime()
+            basic.clearScreen()
+        } else {
+            basic.clearScreen()
+            images.iconImage(IconNames.No).showImage(0)
+            basic.pause(1000)
+            basic.clearScreen()
+        }
+
     }
 })
 
@@ -279,6 +316,9 @@ function display(normAntibioticSignal: number, normFoodSignal: number, score: nu
         }
     }
 }
+
+
+
 
 // main loop
 while (true) {
