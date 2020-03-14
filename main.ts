@@ -122,8 +122,6 @@ let plasmidsObtained: { [index: string]: any; } = {
     light: false
 }
 
-/*
-COMING SOON....
 // setup the external display LEDs
 // for now, assue we use 5 ZIP (Neopixel) LED strips
 // but we might replace some of them with individual LEDs to
@@ -135,12 +133,27 @@ let stripAntibiotic: neopixel.Strip = null
 let stripPlasmids: neopixel.Strip = null
 let stripDirection: neopixel.Strip = null
 
-stripScore = neopixel.create(DigitalPin.P0, 12, NeoPixelMode.RGB)
+stripScore = neopixel.create(DigitalPin.P0, 5, NeoPixelMode.RGB)
 stripFood = neopixel.create(DigitalPin.P1, 5, NeoPixelMode.RGB)
 stripAntibiotic = neopixel.create(DigitalPin.P8, 5, NeoPixelMode.RGB)
 stripPlasmids = neopixel.create(DigitalPin.P12, 5, NeoPixelMode.RGB)
 stripDirection = neopixel.create(DigitalPin.P2, 5, NeoPixelMode.RGB)
-*/
+
+// define the coloures of the LEDs in the strips
+// as RGB values
+let stripColours5: number[][] = [ 
+    [ 255,0,0 ],
+    [ 255,50,0 ],
+    [ 255,155,0],
+    [ 255, 255, 0],
+    [ 0, 255, 0] 
+]
+
+// change this to switch display type between the onboard
+// LED matrix and external neopixel strips
+// there might be others in the future
+let displayTypes = [ "onboard", "extLEDs" ] 
+let displayType = displayTypes[1]
 
 
 if (isSender == true) {
@@ -193,12 +206,16 @@ input.onGesture(Gesture.Shake, function () {
         if ( input.runningTime() - lastShakeTime >= minTimePassShake ) {
             basic.clearScreen()
             images.iconImage(IconNames.Target).showImage(0)
-            // music.beginMelody(music.builtInMelody(Melodies.BaDing), MelodyOptions.Once)
             basic.pause(1000)
             currDirection = Math.randomRange(0, 359)
             lastShakeTime = input.runningTime()
             basic.clearScreen()
+            // on te external LED screen, this should switch
+            // on briefly the shake LED in green colour
         } else {
+            // min time hasn't passed yet
+            // on the external LEDs, this should switch the 
+            // shake status LED to red
             basic.clearScreen()
             images.iconImage(IconNames.No).showImage(0)
             basic.pause(1000)
@@ -276,13 +293,74 @@ function disaplyScoreToRow(myScore: number, maxScore: number, row: number) {
     }
 }
 
+// turn a single score of some sort to a bar on a Neopixel strip
+// provide the score, the maximum value the score can have
+// and the neopxiel-strip variable
+function disaplyScoreToStrip(myScore: number, maxScore: number, strip: any) {
+    let normScore = Math.round((myScore / maxScore) * 5)
+    strip.clear()
+    for (let index = 0; index <= 4; index++) {
+        if (normScore >= index + 1) {
+            let r = stripColours5[index][0]
+            let g = stripColours5[index][1]
+            let b = stripColours5[index][2]
+            strip.setPixelColor( index, neopixel.rgb(r,g,b))
+        } 
+    }
+    strip.show()
+}
+
 // display the game status:
 // score
 // antibiotic signal
 // food signal
 // plasmids: food,antibio resistance,light
 // direction hint
-function display(normAntibioticSignal: number, normFoodSignal: number, score: number, directionHint: string, plasmidsObtained: any ) {
+function display(displayType: string, normAntibioticSignal: number, normFoodSignal: number, score: number, directionHint: string, plasmidsObtained: any ) {
+    if ( displayType == "onboard" ){
+        displayOnboard(normAntibioticSignal, normFoodSignal, score, directionHint, plasmidsObtained)
+    } else if ( displayType == "extLEDs" ){
+        displayExtleds(normAntibioticSignal, normFoodSignal, score, directionHint, plasmidsObtained)
+    }
+}
+
+// display the game status on external LED strips
+function displayExtleds(normAntibioticSignal: number, normFoodSignal: number, score: number, directionHint: string, plasmidsObtained: any ) {
+    disaplyScoreToStrip(score, 100, stripScore)
+    disaplyScoreToStrip(normFoodSignal, 100, stripFood)
+    disaplyScoreToStrip(normAntibioticSignal, 100, stripAntibiotic)
+
+    // plasmids
+    stripPlasmids.clear()
+     if (plasmidsObtained["food"] == true) {
+        stripPlasmids.setPixelColor(0, neopixel.colors(NeoPixelColors.Green))
+    }
+    if (plasmidsObtained["antibiotic"] == true) {
+        stripPlasmids.setPixelColor(1, neopixel.colors(NeoPixelColors.Blue))
+    }
+    stripPlasmids.show()
+
+    // direction hint
+    stripDirection.clear()
+    if (!(directionHint.isEmpty())) {
+        if (directionHint == "sharp left") {
+            stripDirection.setPixelColor(0, neopixel.colors(NeoPixelColors.Red))
+        } else if (directionHint == "left") {
+            stripDirection.setPixelColor(1, neopixel.colors(NeoPixelColors.Orange))
+        } else if (directionHint == "straight") {
+            stripDirection.setPixelColor(2, neopixel.colors(NeoPixelColors.Green))
+        } else if (directionHint == "right") {
+            stripDirection.setPixelColor(3, neopixel.colors(NeoPixelColors.Orange))
+        } else if (directionHint == "sharp right") {
+            stripDirection.setPixelColor(4, neopixel.colors(NeoPixelColors.Red))
+        }
+    }
+    stripDirection.show()
+
+}
+
+// display the game status on the onboard 5x5 LED matrix
+function displayOnboard(normAntibioticSignal: number, normFoodSignal: number, score: number, directionHint: string, plasmidsObtained: any ) {
     disaplyScoreToRow(score, 100, 0)
     disaplyScoreToRow(normFoodSignal, 100, 1)
     disaplyScoreToRow(normAntibioticSignal, 100, 2)
@@ -352,6 +430,13 @@ while (true) {
         // plasmid and can not feed in that case
         if (normSignalAntibiotic >= 50 && !plasmidsObtained["antibiotic"]) {
             score += -1
+
+        // TODO: need to make sure the player doesn't just stay at one 
+        // food source until they reach max score.
+        // Each source sends a unique ID which we can use to make sure the
+        // player can only get a certain number of points from that sourcer before
+        // having to move on. Need a dictionary object to track food 
+        // sources visited
         } else if (normSignalFood >= 50 && plasmidsObtained["food"]) {
             score += 0.5
         }
@@ -362,8 +447,9 @@ while (true) {
             score = 0
         }
 
-        display(normSignalAntibiotic, normSignalFood, score, directionHint, plasmidsObtained)
+        display(displayType, normSignalAntibiotic, normSignalFood, score, directionHint, plasmidsObtained)
         // pause a bit: may not be necessary but might make display more stable
         basic.pause(50)
+        
     }
 }
