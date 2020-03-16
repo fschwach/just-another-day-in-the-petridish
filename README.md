@@ -1,30 +1,27 @@
 > Open this page at [https://fschwach.github.io/just-another-day-in-the-petridish/](https://fschwach.github.io/just-another-day-in-the-petridish/)
 
-## Use this extension
+## Use the code
 
-This repository can be added as an **extension** in MakeCode.
+open the file main.ts in [https://makecode.microbit.org/](https://makecode.microbit.org/)
+and download from there onto a microbit.
 
-* open [https://makecode.microbit.org/](https://makecode.microbit.org/)
-* click on **New Project**
-* click on **Extensions** under the gearwheel menu
-* search for **https://github.com/fschwach/just-another-day-in-the-petridish** and import
+To fully try the activity, you will need at least two microbits, one to serve as the player and one as a
+food or antibiotic source. Ideally, you will want three devices.
 
-## Edit this extension ![Build status badge](https://github.com/fschwach/just-another-day-in-the-petridish/workflows/MakeCode/badge.svg)
+When the code is loaded onto the device, an animation of arrows will be shown to prompt for pressing of either the A button, B button or A+B at the same time. 
+A: turn device into food source
+B: turn device into player
+A+B: turn device into antibiotic source
 
-To edit this repository in MakeCode.
+In player mode, you first need to calibrate the compass by tilting and moving the microbit until
+the LED matrix is all lit up. This sometimes takes more than one round of calibrating.
 
-* open [https://makecode.microbit.org/](https://makecode.microbit.org/)
-* click on **Import** then click on **Import URL**
-* paste **https://github.com/fschwach/just-another-day-in-the-petridish** and click import
+The game status is displayed on the built-in LED matrix:
 
-## Blocks preview
+row1 = score
+row2 = food signal strength
+row3 = antib iotic signal strength
+row4 = plasmids obtained ( LED1 = food utlisation, LED2 = antibiotic resistance)
+row5 = direction: middle LED means "go straight", LEDs to the left or right mean turn left or right
 
-This image shows the blocks code from the last commit in master.
-This image may take a few minutes to refresh.
 
-![A rendered view of the blocks](https://github.com/fschwach/just-another-day-in-the-petridish/raw/master/.github/makecode/blocks.png)
-
-#### Metadata (used for search, rendering)
-
-* for PXT/microbit
-<script src="https://makecode.com/gh-pages-embed.js"></script><script>makeCodeRender("{{ site.makecode.home_url }}", "{{ site.github.owner_name }}/{{ site.github.repository_name }}");</script>
